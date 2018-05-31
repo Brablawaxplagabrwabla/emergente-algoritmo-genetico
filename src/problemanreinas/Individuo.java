@@ -11,37 +11,42 @@ package problemanreinas;
  */
 public class Individuo {
     
-    private int[] genes;
+    private int[] cromosoma;
     private int fitness;
     
+    public Individuo(int[] genes) {
+        cromosoma = genes;
+        fitness = 0;
+    }
+    
     public Individuo(int n, int shuffles) {
-        genes = new int[n];
+        cromosoma = new int[n];
         for (int i = 0; i < n; i++) {
-            genes[i] = i;
+            cromosoma[i] = i;
         }
         
         for (int i = 0; i < shuffles; i++) {
             int index1 = (int) Math.floor(Math.random() * n);
             int index2 = (int) Math.floor(Math.random() * n);
             
-            int aux1 = genes[index1];
-            int aux2 = genes[index2];
+            int aux1 = cromosoma[index1];
+            int aux2 = cromosoma[index2];
             
-            genes[index1] = aux2;
-            genes[index2] = aux1;
+            cromosoma[index1] = aux2;
+            cromosoma[index2] = aux1;
         }        
     }
     
     public void calcularFitness() {
-        int[] reinasVivasV = new int[genes.length];
-        int reinasVivas = genes.length;
-        for (int i = 0; i < genes.length; i++) {
+        int[] reinasVivasV = new int[cromosoma.length];
+        int reinasVivas = cromosoma.length;
+        for (int i = 0; i < cromosoma.length; i++) {
             reinasVivasV[i] = 1;
         }
-        for (int i = 0; i < genes.length; i++) {
+        for (int i = 0; i < cromosoma.length; i++) {
             for (int aux = 1; i - aux > 0; aux++) { // Buscamos en las diagonales superiores;
-                if (genes[i - aux] == genes[i] - aux || // Superior izquierda
-                        genes[i - aux] == genes[i] + aux) { // Superior derecha
+                if (cromosoma[i - aux] == cromosoma[i] - aux || // Superior izquierda
+                        cromosoma[i - aux] == cromosoma[i] + aux) { // Superior derecha
                     if (reinasVivasV[i - aux] == 1) {
                         reinasVivasV[i - aux] = 0;
                         reinasVivas--;
@@ -52,9 +57,9 @@ public class Individuo {
                     }
                 }
             }
-            for (int aux = 1; i + aux < genes.length; aux++) { // Buscamos en las diagonales inferiores
-                if (genes[i + aux] == genes[i] - aux || // Inferior izquierda
-                        genes[i + aux] == genes[i] + aux) { // Inferior derecha
+            for (int aux = 1; i + aux < cromosoma.length; aux++) { // Buscamos en las diagonales inferiores
+                if (cromosoma[i + aux] == cromosoma[i] - aux || // Inferior izquierda
+                        cromosoma[i + aux] == cromosoma[i] + aux) { // Inferior derecha
                     if (reinasVivasV[i + aux] == 1) {
                         reinasVivasV[i + aux] = 0;
                         reinasVivas--;
@@ -70,7 +75,7 @@ public class Individuo {
     }
 
     public int[] getGenes() {
-        return genes;
+        return cromosoma;
     }
 
     public int getFitness() {
