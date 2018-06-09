@@ -25,15 +25,19 @@ import java.util.Scanner;
 public class ProblemaNReinas {
     
     private int grado;
-    private int tamañoMinPoblacion;
+    private int tamañoPoblacion;
     private double tasaMutacion;
     private double probabilidadApareamiento;
+    private double evaluacionOnline;
+    private double evaluacionOffline;
+    private int epocas;
     
     private final int MINIMO_POR_TORNEO;
     private final int MAXIMO_POR_TORNEO;
     private final int APAREOS_POR_GENERACION;
     private final int NUMERO_SHUFFLES;
-    public final int LIMITE_CICLOS;
+    private final int LIMITE_CICLOS;
+    private int TIPO_CRUCE;
     
     private ArrayList<Individuo> poblacion;
     
@@ -44,9 +48,9 @@ public class ProblemaNReinas {
             grado = in.nextInt();
         } while (!(grado > 7 && grado <= 100));
         do {
-            System.out.print("Indique el tamaño mínimo de la población. (Entre 100 y 10000): ");
-            tamañoMinPoblacion = in.nextInt();
-        } while (!(tamañoMinPoblacion >= 100 && tamañoMinPoblacion <= 10000));
+            System.out.print("Indique el tamaño mínimo de la población. (Entre 10 y 500): ");
+            tamañoPoblacion = in.nextInt();
+        } while (!(tamañoPoblacion >= 10 && tamañoPoblacion <= 500));
         do {
             System.out.print("Indique la tasa de mutación. (Entre 0 y 1): ");
             tasaMutacion = in.nextDouble();
@@ -55,12 +59,16 @@ public class ProblemaNReinas {
             System.out.print("Indique la probabilidad de apareamiento. (Entre 0 y 1): ");
             probabilidadApareamiento = in.nextDouble();
         } while (!(probabilidadApareamiento >=0 && probabilidadApareamiento <= 1));
-        if (minTorneo <= maxTorneo && maxTorneo <= tamañoMinPoblacion) {
+        do {
+            System.out.print("Indique el tipo de cruce, 0 para OX, 1 para MIX: ");
+            TIPO_CRUCE = in.nextInt();
+        } while (TIPO_CRUCE != 0 && TIPO_CRUCE != 1);
+        if (minTorneo <= maxTorneo && maxTorneo <= tamañoPoblacion) {
             MINIMO_POR_TORNEO = minTorneo;
             MAXIMO_POR_TORNEO = maxTorneo;   
         } else {
-            MINIMO_POR_TORNEO = tamañoMinPoblacion;
-            MAXIMO_POR_TORNEO = tamañoMinPoblacion;
+            MINIMO_POR_TORNEO = tamañoPoblacion;
+            MAXIMO_POR_TORNEO = tamañoPoblacion;
         }
         if (descGen < maxTorneo && descGen > 0) {
             APAREOS_POR_GENERACION = descGen;   
@@ -84,7 +92,7 @@ public class ProblemaNReinas {
     }
     
     private void generarPoblacion() {
-        for (int i = 0; i < tamañoMinPoblacion; i++) {
+        for (int i = 0; i < tamañoPoblacion; i++) {
             poblacion.add(new Individuo(grado, NUMERO_SHUFFLES));
             poblacion.get(i).calcularFitness();
         }
@@ -139,24 +147,28 @@ public class ProblemaNReinas {
     }
     
     public void algoritmoGenetico() {
-        long epocas = 0;
+        epocas = 0;
         ordenarPorFitness();
         do {
             epocas++;
             reproduccion();
             ordenarPorFitness();
             seleccionArtificial();
+            for (int i = 0; i < poblacion.size(); i++) {
+                evaluacionOnline += poblacion.get(i).getFitness();
+            }
+            evaluacionOffline += poblacion.get(0).getFitness();
             if (epocas > LIMITE_CICLOS) {
                 System.out.println("No se encontró ninguna solución dentro del límite de épocas establecido.");
                 return;
             }
-        } while (poblacion.get(0).getFitness() < grado);
-        System.out.println("\nEl número de épocas requeridos para alcanzar la solución es: " + epocas);
+        } while (poblacion.get(0).getFitness() < grado); // Se puede cambiar aquí el criterio de stop
+        evaluacionOnline /= (tamañoPoblacion * epocas);
+        evaluacionOffline /= epocas;
     }
     
     public void seleccionArtificial() {
-        int puntoDeCorte = (int) Math.floor(Math.random() * (poblacion.size() - tamañoMinPoblacion)) + tamañoMinPoblacion;
-        while (poblacion.size() > puntoDeCorte) {
+        while (poblacion.size() > tamañoPoblacion) {
             poblacion.remove(poblacion.size() - 1);
         }
     }
@@ -176,7 +188,12 @@ public class ProblemaNReinas {
                 } while (indicePadreA == indicePadreB);
                 Individuo padreA = torneo[indicePadreA];
                 Individuo padreB = torneo[indicePadreB];
-                Individuo hijo = generarCombinacion(padreA, padreB);
+                Individuo hijo;
+                if (TIPO_CRUCE == 0) {
+                    hijo = generarCombinacionOX(padreA, padreB);   
+                } else {
+                    hijo = generarCombinacionMIX(padreA, padreB);
+                }
                 if (Math.floor(Math.random()) < tasaMutacion) {
                     hijo = mutarIndividuo(hijo);
                 }
@@ -204,7 +221,7 @@ public class ProblemaNReinas {
         return hijoMutado;
     }
     
-    public Individuo generarCombinacion(Individuo padreA, Individuo padreB) {
+    public Individuo generarCombinacionOX(Individuo padreA, Individuo padreB) {
         int[] cromosomaA = padreA.getGenes();
         int[] cromosomaB = padreB.getGenes();
         int[] cromosomaHijo = new int[cromosomaA.length];
@@ -238,6 +255,57 @@ public class ProblemaNReinas {
         return hijo;
     }
     
+    public Individuo generarCombinacionMIX(Individuo padreA, Individuo padreB) {
+        int[] cromosomaA = padreA.getGenes();
+        int[] cromosomaB = padreB.getGenes();
+        int[] cromosomaHijo = new int[cromosomaA.length];
+        for (int i = 0; i < cromosomaHijo.length; i++) {
+            cromosomaHijo[i] = -1;
+        }
+        ArrayList<Integer> posicionesImpares = new ArrayList<>();
+        int random = (int) Math.floor(Math.random() * 2) + 1;
+        if (random == 1) {
+            for (int i = 0; i < cromosomaA.length; i++) {
+                if (cromosomaA[i] % 2 == 0) {
+                    cromosomaHijo[i] = cromosomaA[i];
+                }
+                if (cromosomaB[i] % 2 == 1) {
+                    posicionesImpares.add(i);
+                }
+            }
+            for (int i = 0; i < cromosomaHijo.length; i++) {
+                if (cromosomaHijo[i] == -1) {
+                    cromosomaHijo[i] = cromosomaB[posicionesImpares.get(0)];
+                    posicionesImpares.remove(0);
+                }
+            }
+        } else {
+            for (int i = 0; i < cromosomaA.length; i++) {
+                if (cromosomaB[i] % 2 == 0) {
+                    cromosomaHijo[i] = cromosomaB[i];
+                }
+                if (cromosomaA[i] % 2 == 1) {
+                    posicionesImpares.add(i);
+                }
+            }
+            for (int i = 0; i < cromosomaHijo.length; i++) {
+                if (cromosomaHijo[i] == -1) {
+                    cromosomaHijo[i] = cromosomaA[posicionesImpares.get(0)];
+                    posicionesImpares.remove(0);
+                }
+            }
+        }
+        Individuo hijo = new Individuo(cromosomaHijo);
+        hijo.calcularFitness();
+        return hijo;
+    }
+    
+    public void imprimirEvaluaciones() {
+        System.out.println("La evaluación online es: " + evaluacionOnline);
+        System.out.println("La evaluación offline es: " + evaluacionOffline);
+        System.out.println("\nEl número de épocas requeridos para alcanzar la solución es: " + epocas);
+    }
+    
     /**
     * @param args the command line arguments
     */
@@ -246,5 +314,6 @@ public class ProblemaNReinas {
         ProblemaNReinas resolver = new ProblemaNReinas(10, 30, 15, 10000, 10000);
         resolver.algoritmoGenetico();
         resolver.imprimirPoblacion();
+        resolver.imprimirEvaluaciones();
     }   
 }
