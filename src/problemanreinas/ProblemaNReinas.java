@@ -41,6 +41,26 @@ public class ProblemaNReinas {
     
     private ArrayList<Individuo> poblacion;
     
+    public ProblemaNReinas(int _grado, int _tamañoPoblacion, double _tasaMutacion,
+            double _probabilidadApareamiento, int _MINIMO_POR_TORNEO, int _MAXIMO_POR_TORNEO,
+            int _APAREOS_POR_GENERACION, int _NUMERO_SHUFFLES, int _LIMITE_CICLOS,
+            int _TIPO_CRUCE) {
+        grado = _grado;
+        tamañoPoblacion = _tamañoPoblacion;
+        tasaMutacion = _tasaMutacion;
+        probabilidadApareamiento = _probabilidadApareamiento;
+        MINIMO_POR_TORNEO = _MINIMO_POR_TORNEO;
+        MAXIMO_POR_TORNEO = _MAXIMO_POR_TORNEO;
+        APAREOS_POR_GENERACION = _APAREOS_POR_GENERACION;
+        NUMERO_SHUFFLES = _NUMERO_SHUFFLES;
+        LIMITE_CICLOS = _LIMITE_CICLOS;
+        TIPO_CRUCE = _TIPO_CRUCE;
+        
+        poblacion = new ArrayList<>();
+        
+        generarPoblacion();
+    }
+    
     public ProblemaNReinas(int minTorneo, int maxTorneo, int descGen, int shuffles, int ciclos) {
         Scanner in = new Scanner(System.in);
         do {
@@ -89,6 +109,18 @@ public class ProblemaNReinas {
         poblacion = new ArrayList<>();
         
         generarPoblacion();
+    }
+
+    public double getEvaluacionOnline() {
+        return evaluacionOnline;
+    }
+
+    public double getEvaluacionOffline() {
+        return evaluacionOffline;
+    }
+
+    public int getEpocas() {
+        return epocas;
     }
     
     private void generarPoblacion() {
@@ -148,6 +180,8 @@ public class ProblemaNReinas {
     
     public void algoritmoGenetico() {
         epocas = 0;
+        evaluacionOffline = 0;
+        evaluacionOnline = 0;
         ordenarPorFitness();
         do {
             epocas++;
@@ -292,15 +326,83 @@ public class ProblemaNReinas {
         System.out.println("La evaluación offline es: " + evaluacionOffline);
         System.out.println("\nEl número de épocas requeridos para alcanzar la solución es: " + epocas);
     }
+
     
+    public int getGrado() {
+        return grado;
+    }   
+
+    public int getTamañoPoblacion() {
+        return tamañoPoblacion;
+    }
+
+    public double getTasaMutacion() {
+        return tasaMutacion;
+    }
+
+    public double getProbabilidadApareamiento() {
+        return probabilidadApareamiento;
+    }
+
+    public int getMINIMO_POR_TORNEO() {
+        return MINIMO_POR_TORNEO;
+    }
+
+    public int getMAXIMO_POR_TORNEO() {
+        return MAXIMO_POR_TORNEO;
+    }
+
+    public int getAPAREOS_POR_GENERACION() {
+        return APAREOS_POR_GENERACION;
+    }
+
+    public int getNUMERO_SHUFFLES() {
+        return NUMERO_SHUFFLES;
+    }
+
+    public int getLIMITE_CICLOS() {
+        return LIMITE_CICLOS;
+    }
+
+    public int getTIPO_CRUCE() {
+        return TIPO_CRUCE;
+    }
+
     /**
-    * @param args the command line arguments
-    */
-    
+     * @param args the command line arguments
+     */
+    public ArrayList<Individuo> getPoblacion() {
+        return poblacion;
+    }
+
     public static void main(String[] args) {
+        double promedioOnline = 0;
+        double promedioOffline = 0;
+        double promedioGeneraciones = 0;
         ProblemaNReinas resolver = new ProblemaNReinas(10, 30, 15, 10000, 10000);
         resolver.algoritmoGenetico();
         resolver.imprimirPoblacion();
         resolver.imprimirEvaluaciones();
+        promedioOnline += resolver.getEvaluacionOnline();
+        promedioOffline += resolver.getEvaluacionOffline();
+        promedioGeneraciones += resolver.getEpocas();
+        for (int i = 0; i < 9; i++) {
+            ProblemaNReinas resolver2 = new ProblemaNReinas(resolver.getGrado(), resolver.getTamañoPoblacion(), resolver.getTasaMutacion(),
+            resolver.getProbabilidadApareamiento(), resolver.getMINIMO_POR_TORNEO(), resolver.getMAXIMO_POR_TORNEO(), resolver.getAPAREOS_POR_GENERACION(),
+            resolver.getNUMERO_SHUFFLES(), resolver.getLIMITE_CICLOS(), resolver.getTIPO_CRUCE());
+            resolver2.algoritmoGenetico();
+            resolver2.imprimirPoblacion();
+            resolver2.imprimirEvaluaciones();
+            promedioOnline += resolver2.getEvaluacionOnline();
+            promedioOffline += resolver2.getEvaluacionOffline();
+            promedioGeneraciones += resolver2.getEpocas();
+        }
+        promedioGeneraciones /= 10;
+        promedioOnline /= 10;
+        promedioOffline /= 10;
+        System.out.println("\n----------------------------------------------------------------------");
+        System.out.println("En promedio, se requirieron " + promedioGeneraciones + " generaciones.");
+        System.out.println("El promedio de la evaluación Online fue de " + promedioOnline);
+        System.out.println("El promedio de la evaluación Offline fue de " + promedioOffline);
     }   
 }
