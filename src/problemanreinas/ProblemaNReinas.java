@@ -218,6 +218,10 @@ public class ProblemaNReinas {
         cromosomaMutado[indiceMutacionB] = aux;
         Individuo hijoMutado = new Individuo(cromosomaMutado);
         hijoMutado.calcularFitness();
+        double lanzamientoMoneda = Math.random();
+        if (lanzamientoMoneda <= 0.5) {
+            hijoMutado = mutarIndividuo(hijoMutado);
+        }
         return hijoMutado;
     }
     
@@ -264,35 +268,18 @@ public class ProblemaNReinas {
         }
         ArrayList<Integer> posicionesImpares = new ArrayList<>();
         int random = (int) Math.floor(Math.random() * 2) + 1;
-        if (random == 1) {
-            for (int i = 0; i < cromosomaA.length; i++) {
-                if (cromosomaA[i] % 2 == 0) {
-                    cromosomaHijo[i] = cromosomaA[i];
-                }
-                if (cromosomaB[i] % 2 == 1) {
-                    posicionesImpares.add(i);
-                }
+        for (int i = 0; i < cromosomaA.length; i++) {
+            if (cromosomaA[i] % 2 == 0) {
+                cromosomaHijo[i] = cromosomaA[i];
             }
-            for (int i = 0; i < cromosomaHijo.length; i++) {
-                if (cromosomaHijo[i] == -1) {
-                    cromosomaHijo[i] = cromosomaB[posicionesImpares.get(0)];
-                    posicionesImpares.remove(0);
-                }
+            if (cromosomaB[i] % 2 == 1) {
+                posicionesImpares.add(i);
             }
-        } else {
-            for (int i = 0; i < cromosomaA.length; i++) {
-                if (cromosomaB[i] % 2 == 0) {
-                    cromosomaHijo[i] = cromosomaB[i];
-                }
-                if (cromosomaA[i] % 2 == 1) {
-                    posicionesImpares.add(i);
-                }
-            }
-            for (int i = 0; i < cromosomaHijo.length; i++) {
-                if (cromosomaHijo[i] == -1) {
-                    cromosomaHijo[i] = cromosomaA[posicionesImpares.get(0)];
-                    posicionesImpares.remove(0);
-                }
+        }
+        for (int i = 0; i < cromosomaHijo.length; i++) {
+            if (cromosomaHijo[i] == -1) {
+                cromosomaHijo[i] = cromosomaB[posicionesImpares.get(0)];
+                posicionesImpares.remove(0);
             }
         }
         Individuo hijo = new Individuo(cromosomaHijo);
