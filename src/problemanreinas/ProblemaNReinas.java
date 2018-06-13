@@ -178,6 +178,32 @@ public class ProblemaNReinas {
         poblacion = lista;
     }
     
+    public void mutacion() {
+        for (int i = 0; i < poblacion.size(); i++) {
+            Individuo jose = poblacion.get(i);
+            boolean cambio = false;
+            int[] cromosoma = jose.getGenes();
+            for (int j = 0; j < cromosoma.length; j++) {
+                double random = Math.random();
+                if (random < tasaMutacion) {
+                    int indiceA = (int) Math.floor(Math.random() * cromosoma.length);
+                    int genA = cromosoma[indiceA];
+                    int indiceB = 0;
+                    do {
+                        indiceB = (int) Math.floor(Math.random() * cromosoma.length);
+                    } while (indiceA == indiceB);
+                    int genB = cromosoma[indiceB];
+                    cromosoma[indiceA] = genB;
+                    cromosoma[indiceB] = genA;
+                    cambio = true;
+                }
+            }
+            if (cambio) {
+                poblacion.set(i, new Individuo(cromosoma));
+            }
+        }
+    }
+    
     public void algoritmoGenetico() {
         epocas = 0;
         evaluacionOffline = 0;
@@ -186,15 +212,16 @@ public class ProblemaNReinas {
         do {
             epocas++;
             reproduccion();
+            mutacion();
             ordenarPorFitness();
             seleccionArtificial();
             for (int i = 0; i < poblacion.size(); i++) {
                 evaluacionOnline += poblacion.get(i).getFitness();
             }
             evaluacionOffline += poblacion.get(0).getFitness();
-            if (epocas > LIMITE_CICLOS) {
+            if (epocas >= LIMITE_CICLOS) {
                 System.out.println("No se encontró ninguna solución dentro del límite de épocas establecido.");
-                return;
+                break;
             }
         } while (poblacion.get(0).getFitness() < grado); // Se puede cambiar aquí el criterio de stop
         evaluacionOnline /= (tamañoPoblacion * epocas);
@@ -228,9 +255,9 @@ public class ProblemaNReinas {
                 } else {
                     hijo = generarCombinacionMIX(padreA, padreB);
                 }
-                if (Math.floor(Math.random()) < tasaMutacion) {
+                /*if (Math.floor(Math.random()) < tasaMutacion) {
                     hijo = mutarIndividuo(hijo);
-                }
+                }*/
                 poblacion.add(hijo);
             }
         }
@@ -252,10 +279,6 @@ public class ProblemaNReinas {
         cromosomaMutado[indiceMutacionB] = aux;
         Individuo hijoMutado = new Individuo(cromosomaMutado);
         hijoMutado.calcularFitness();
-        double lanzamientoMoneda = Math.random();
-        if (lanzamientoMoneda <= 0.5) {
-            hijoMutado = mutarIndividuo(hijoMutado);
-        }
         return hijoMutado;
     }
     
