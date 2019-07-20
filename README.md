@@ -1,4 +1,4 @@
-# emergente-algoritmo-genetico
+# N Queen Problem (Genetic Algorithm Approach)
 
 Small implementation of a genetic algorithm employing two types of mutation OX and MIX to solve the N-Queen problem. The implementation can efficiently handle boards of up to 300 queens and has been employed (albeit with some waiting) to solve boards of 1000+ queens.
 
